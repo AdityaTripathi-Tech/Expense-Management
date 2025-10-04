@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Extend Company Form View -->
+        <record id="view_company_form_expense_config" model="ir.ui.view">
+            <field name="name">res.company.form.expense.config</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Expense Management" name="expense_management">
+                        <group string="Approval Settings">
+                            <group>
+                                <field name="expense_approval_required"/>
+                                <field name="auto_approve_limit" attrs="{'invisible': [('expense_approval_required', '=', False)]}"/>
+                                <field name="cfo_approval_threshold"/>
+                            </group>
+                            <group>
+                                <field name="default_expense_currency_id"/>
+                                <field name="expense_notification_email"/>
+                            </group>
+                        </group>
+                        
+                        <group string="OCR Configuration">
+                            <group>
+                                <field name="enable_ocr"/>
+                                <field name="ocr_confidence_threshold" attrs="{'invisible': [('enable_ocr', '=', False)]}"/>
+                            </group>
+                            <group>
+                                <field name="google_vision_api_key" password="True" attrs="{'invisible': [('enable_ocr', '=', False)]}"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Actions">
+                            <button name="action_test_currency_service" type="object" string="Test Currency Service" class="oe_highlight"/>
+                            <button name="action_refresh_country_mappings" type="object" string="Refresh Country Mappings"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,386 @@
+name: Smart Expense Management CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+  ODOO_VERSION: '17.0'
+  POSTGRES_VERSION: '15'
+
+jobs:
+  lint:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black isort mypy
+        pip install -r requirements-dev.txt
+    
+    - name: Run ruff (linting)
+      run: ruff check smart_expense_management/
+    
+    - name: Run black (formatting)
+      run: black --check smart_expense_management/
+    
+    - name: Run isort (import sorting)
+      run: isort --check-only smart_expense_management/
+    
+    - name: Run mypy (type checking)
+      run: mypy smart_expense_management/ --ignore-missing-imports
+
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+        sudo apt-get install -y libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev
+        sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-mock
+        pip install requests pytesseract Pillow
+        pip install psycopg2-binary
+    
+    - name: Set up test environment
+      env:
+        USE_API_STUBS: true
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+      run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+        echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+    
+    - name: Run unit tests
+      env:
+        USE_API_STUBS: true
+      run: |
+        pytest smart_expense_management/tests/ -v --cov=smart_expense_management --cov-report=xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Start services
+      run: |
+        docker-compose --profile testing up -d
+        sleep 30  # Wait for services to start
+    
+    - name: Wait for Odoo to be ready
+      run: |
+        timeout 300 bash -c 'until curl -f http://localhost:8069/web/health; do sleep 5; done'
+    
+    - name: Test mock API server
+      run: |
+        curl -f http://localhost:8080/health
+        curl -f http://localhost:8080/v3.1/all?fields=name,currencies
+        curl -f http://localhost:8080/v4/latest/USD
+    
+    - name: Run integration tests
+      run: |
+        docker-compose exec -T odoo python -m pytest /mnt/extra-addons/smart_expense_management/tests/test_integration.py -v
+    
+    - name: Collect logs
+      if: failure()
+      run: |
+        docker-compose logs odoo > odoo.log
+        docker-compose logs mock_server > mock_server.log
+    
+    - name: Upload logs
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: integration-test-logs
+        path: |
+          odoo.log
+          mock_server.log
+    
+    - name: Cleanup
+      if: always()
+      run: docker-compose down -v
+
+  test-odoo:
+    name: Odoo Module Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: odoo_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+        sudo apt-get install -y libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev
+        sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+        sudo apt-get install -y wkhtmltopdf
+    
+    - name: Install Odoo
+      run: |
+        wget -O - https://nightly.odoo.com/odoo.key | sudo gpg --dearmor -o /usr/share/keyrings/odoo-archive-keyring.gpg
+        echo 'deb [signed-by=/usr/share/keyrings/odoo-archive-keyring.gpg] https://nightly.odoo.com/17.0/nightly/deb/ ./' | sudo tee /etc/apt/sources.list.d/odoo.list
+        sudo apt-get update
+        sudo apt-get install -y odoo
+    
+    - name: Install module dependencies
+      run: |
+        pip install requests pytesseract Pillow google-cloud-vision
+    
+    - name: Configure Odoo
+      run: |
+        sudo mkdir -p /mnt/extra-addons
+        sudo cp -r smart_expense_management /mnt/extra-addons/
+        sudo chown -R odoo:odoo /mnt/extra-addons
+    
+    - name: Run Odoo tests
+      env:
+        USE_API_STUBS: true
+      run: |
+        sudo -u odoo odoo \
+          --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons \
+          --database=odoo_test \
+          --db_host=localhost \
+          --db_port=5432 \
+          --db_user=postgres \
+          --db_password=odoo \
+          --init=smart_expense_management \
+          --test-enable \
+          --stop-after-init \
+          --log-level=test
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Bandit security scan
+      uses: securecodewarrior/github-action-bandit@v1
+      with:
+        path: smart_expense_management/
+        level: medium
+        confidence: medium
+        exit_zero: false
+    
+    - name: Run Safety check
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Odoo image
+      run: |
+        docker build -t smart-expense-odoo:${{ github.sha }} .
+    
+    - name: Build mock server image
+      run: |
+        docker build -f Dockerfile.mock -t smart-expense-mock:${{ github.sha }} .
+    
+    - name: Test Docker images
+      run: |
+        docker run --rm smart-expense-mock:${{ github.sha }} python -c "import flask; print('Mock server OK')"
+    
+    - name: Check Docker Hub credentials
+      id: docker-check
+      run: |
+        if [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
+          echo "docker-available=true" >> $GITHUB_OUTPUT
+        else
+          echo "docker-available=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Login to Docker Hub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.docker-check.outputs.docker-available == 'true'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Push to Docker Hub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.docker-check.outputs.docker-available == 'true'
+      run: |
+        docker tag smart-expense-odoo:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/smart-expense-odoo:latest
+        docker tag smart-expense-mock:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/smart-expense-mock:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/smart-expense-odoo:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/smart-expense-mock:latest
+        echo "✅ Docker images pushed successfully"
+    
+    - name: Skip Docker Hub push
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.docker-check.outputs.docker-available == 'false'
+      run: |
+        echo "⚠️ Docker Hub credentials not configured - skipping push"
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test-integration, test-odoo, security-scan, build-docker]
+    if: github.ref == 'refs/heads/develop'
+    
+    environment:
+      name: staging
+      url: https://staging.smartexpense.example.com
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your deployment script here
+        # Example: kubectl apply -f k8s/staging/
+    
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # Add smoke tests here
+        curl -f https://staging.smartexpense.example.com/web/health
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test-integration, test-odoo, security-scan, build-docker]
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: production
+      url: https://smartexpense.example.com
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment script here
+    
+    - name: Run smoke tests
+      run: |
+        echo "Running production smoke tests..."
+        curl -f https://smartexpense.example.com/web/health
+    
+    - name: Notify team
+      if: success()
+      run: |
+        echo "✅ Smart Expense Management deployed successfully to production!"
+        # Add notification logic (Slack, email, etc.)
+
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Clean up old Docker images
+      run: |
+        echo "Cleaning up old Docker images..."
+        # Add cleanup logic for old images/artifacts

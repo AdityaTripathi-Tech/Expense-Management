@@ -1,0 +1,29 @@
+# Smart Expense Management - Production Dependencies
+# Core dependencies for the Odoo module
+
+# HTTP requests for external APIs
+requests>=2.31.0,<3.0.0
+
+# OCR processing
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Optional: Google Cloud Vision API
+google-cloud-vision>=3.4.0
+
+# Database and caching
+psycopg2-binary>=2.9.7
+
+# Utilities
+python-dateutil>=2.8.2
+pytz>=2023.3
+
+# Security and validation
+cryptography>=41.0.0
+validators>=0.22.0
+
+# Monitoring (optional)
+sentry-sdk>=1.32.0
+
+# Environment management
+python-dotenv>=1.0.0

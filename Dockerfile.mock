@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements-mock.txt .
+RUN pip install -r requirements-mock.txt
+
+# Copy mock server code
+COPY mock_server.py .
+COPY smart_expense_management/tests/fixtures ./fixtures/
+
+EXPOSE 8080
+
+CMD ["python", "mock_server.py"]

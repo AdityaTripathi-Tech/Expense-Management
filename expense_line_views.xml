@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Expense Line Tree View -->
+    <record id="expense_line_tree_view" model="ir.ui.view">
+        <field name="name">expense.line.tree</field>
+        <field name="model">expense.line</field>
+        <field name="arch" type="xml">
+            <tree decoration-warning="ocr_confidence_low==True" 
+                  decoration-info="state=='draft'"
+                  decoration-success="state=='approved'">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="category_id"/>
+                <field name="vendor_name"/>
+                <field name="currency_id"/>
+                <field name="total_amount" widget="monetary" sum="Total"/>
+                <field name="has_receipt" widget="boolean"/>
+                <field name="ocr_processed" widget="boolean"/>
+                <field name="ocr_confidence_low" invisible="1"/>
+                <field name="state" widget="badge"/>
+                <button name="action_process_ocr" type="object" 
+                        string="Process OCR" icon="fa-eye"
+                        attrs="{'invisible': ['|', ('has_receipt', '=', False), ('ocr_processed', '=', True)]}"/>
+                <button name="action_view_receipt" type="object" 
+                        string="View Receipt" icon="fa-file-image-o"
+                        attrs="{'invisible': [('has_receipt', '=', False)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Expense Line Form View -->
+    <record id="expense_line_form_view" model="ir.ui.view">
+        <field name="name">expense.line.form</field>
+        <field name="model">expense.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_process_ocr" type="object" 
+                            string="Process OCR" class="btn-primary"
+                            attrs="{'invisible': ['|', ('receipt_attachment_id', '=', False), ('ocr_processed', '=', True)]}"/>
+                    <button name="action_upload_receipt" type="object" 
+                            string="Upload Receipt" class="btn-secondary"
+                            attrs="{'invisible': [('receipt_attachment_id', '!=', False)]}"/>
+                    <button name="action_view_receipt" type="object" 
+                            string="View Receipt" class="btn-info"
+                            attrs="{'invisible': [('receipt_attachment_id', '=', False)]}"/>
+                </header>
+
+                <sheet>
+                    <!-- OCR Confidence Alert -->
+                    <div class="alert alert-warning" role="alert" 
+                         attrs="{'invisible': [('ocr_confidence_low', '=', False)]}">
+                        <strong>Low OCR Confidence!</strong>
+                        Please verify the extracted data before submitting.
+                        Confidence: <field name="ocr_confidence" widget="percentage" readonly="1"/>
+                    </div>
+
+                    <group>
+                        <group name="left">
+                            <field name="name" placeholder="Brief description of expense..."/>
+                            <field name="date"/>
+                            <field name="category_id"/>
+                            <field name="claim_id" readonly="1" attrs="{'invisible': [('claim_id', '=', False)]}"/>
+                        </group>
+                        <group name="right">
+                            <field name="currency_id"/>
+                            <field name="unit_amount" widget="monetary"/>
+                            <field name="quantity"/>
+                            <field name="total_amount" widget="monetary" readonly="1"/>
+                            <field name="tax_amount" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Receipt & OCR" name="receipt">
+                            <group>
+                                <group name="receipt_info">
+                                    <field name="receipt_attachment_id" widget="binary"/>
+                                    <field name="has_receipt" readonly="1"/>
+                                    <field name="ocr_processed" readonly="1"/>
+                                    <field name="ocr_confidence" widget="percentage" readonly="1" 
+                                           attrs="{'invisible': [('ocr_processed', '=', False)]}"/>
+                                </group>
+                                <group name="ocr_data" attrs="{'invisible': [('ocr_processed', '=', False)]}">
+                                    <field name="ocr_extracted_data" readonly="1" widget="text"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Vendor Information" name="vendor">
+                            <group>
+                                <field name="vendor_name"/>
+                                <field name="vendor_id"/>
+                                <field name="location"/>
+                                <field name="reference"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Additional Details" name="details">
+                            <group>
+                                <field name="is_travel_expense"/>
+                                <field name="notes" placeholder="Additional notes or comments..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Expense Line Search View -->
+    <record id="expense_line_search_view" model="ir.ui.view">
+        <field name="name">expense.line.search</field>
+        <field name="model">expense.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="category_id"/>
+                <field name="vendor_name"/>
+                <field name="claim_id"/>
+                
+                <filter string="My Expenses" name="my_expenses" 
+                        domain="[('employee_id.user_id', '=', uid)]"/>
+                <filter string="Has Receipt" name="has_receipt" 
+                        domain="[('has_receipt', '=', True)]"/>
+                <filter string="OCR Processed" name="ocr_processed" 
+                        domain="[('ocr_processed', '=', True)]"/>
+                <filter string="Low OCR Confidence" name="low_confidence" 
+                        domain="[('ocr_confidence_low', '=', True)]"/>
+                <filter string="Travel Expenses" name="travel_expenses" 
+                        domain="[('is_travel_expense', '=', True)]"/>
+                
+                <separator/>
+                <filter string="This Month" name="this_month" 
+                        domain="[('date', '>=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                ('date', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last Month" name="last_month" 
+                        domain="[('date', '>=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                ('date', '&lt;', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                    <filter string="Vendor" name="group_vendor" context="{'group_by': 'vendor_name'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date:month'}"/>
+                    <filter string="Claim" name="group_claim" context="{'group_by': 'claim_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Expense Category Views -->
+    <record id="expense_category_tree_view" model="ir.ui.view">
+        <field name="name">expense.category.tree</field>
+        <field name="model">expense.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="requires_receipt" widget="boolean"/>
+                <field name="auto_approve_limit" widget="monetary"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="expense_count"/>
+                <field name="active" widget="boolean"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="expense_category_form_view" model="ir.ui.view">
+        <field name="name">expense.category.form</field>
+        <field name="model">expense.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_expenses" type="object" 
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="expense_count" widget="statbutton" string="Expenses"/>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group name="left">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group name="right">
+                            <field name="requires_receipt"/>
+                            <field name="currency_id"/>
+                            <field name="auto_approve_limit" widget="monetary"/>
+                            <field name="default_currency_id"/>
+                        </group>
+                    </group>
+
+                    <group string="Accounting">
+                        <field name="account_id"/>
+                    </group>
+
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Detailed description of this expense category..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="expense_line_action" model="ir.actions.act_window">
+        <field name="name">Expense Lines</field>
+        <field name="res_model">expense.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="expense_line_search_view"/>
+        <field name="context">{'search_default_my_expenses': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No expense lines found
+            </p>
+            <p>
+                Individual expense line items will appear here.
+                Create expense claims to add expense lines.
+            </p>
+        </field>
+    </record>
+
+    <record id="expense_category_action" model="ir.actions.act_window">
+        <field name="name">Expense Categories</field>
+        <field name="res_model">expense.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first expense category
+            </p>
+            <p>
+                Expense categories help organize and control expense submissions.
+                Set up approval limits and requirements for each category.
+            </p>
+        </field>
+    </record>
+</odoo>

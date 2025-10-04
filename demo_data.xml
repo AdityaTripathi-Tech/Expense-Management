@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Demo Users -->
+        <record id="demo_user_employee" model="res.users">
+            <field name="name">John Employee</field>
+            <field name="login">john.employee</field>
+            <field name="email">john.employee@example.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_user')])]"/>
+        </record>
+
+        <record id="demo_user_manager" model="res.users">
+            <field name="name">Sarah Manager</field>
+            <field name="login">sarah.manager</field>
+            <field name="email">sarah.manager@example.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_user')])]"/>
+        </record>
+
+        <record id="demo_user_cfo" model="res.users">
+            <field name="name">Robert CFO</field>
+            <field name="login">robert.cfo</field>
+            <field name="email">robert.cfo@example.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_user')])]"/>
+        </record>
+
+        <!-- Demo Departments -->
+        <record id="demo_department_sales" model="hr.department">
+            <field name="name">Sales Department</field>
+        </record>
+
+        <record id="demo_department_marketing" model="hr.department">
+            <field name="name">Marketing Department</field>
+        </record>
+
+        <!-- Demo Employees -->
+        <record id="demo_employee_john" model="hr.employee">
+            <field name="name">John Employee</field>
+            <field name="user_id" ref="demo_user_employee"/>
+            <field name="department_id" ref="demo_department_sales"/>
+            <field name="work_email">john.employee@example.com</field>
+        </record>
+
+        <record id="demo_employee_sarah" model="hr.employee">
+            <field name="name">Sarah Manager</field>
+            <field name="user_id" ref="demo_user_manager"/>
+            <field name="department_id" ref="demo_department_sales"/>
+            <field name="work_email">sarah.manager@example.com</field>
+        </record>
+
+        <record id="demo_employee_robert" model="hr.employee">
+            <field name="name">Robert CFO</field>
+            <field name="user_id" ref="demo_user_cfo"/>
+            <field name="work_email">robert.cfo@example.com</field>
+        </record>
+
+        <!-- Demo Expense Claims -->
+        <record id="demo_expense_claim_1" model="expense.claim">
+            <field name="employee_id" ref="demo_employee_john"/>
+            <field name="description">Business Trip to New York</field>
+            <field name="claim_date" eval="(DateTime.now() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="state">submitted</field>
+        </record>
+
+        <record id="demo_expense_claim_2" model="expense.claim">
+            <field name="employee_id" ref="demo_employee_john"/>
+            <field name="description">Client Meeting Expenses</field>
+            <field name="claim_date" eval="(DateTime.now() - timedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="state">approved</field>
+        </record>
+
+        <!-- Demo Expense Lines -->
+        <record id="demo_expense_line_1" model="expense.line">
+            <field name="claim_id" ref="demo_expense_claim_1"/>
+            <field name="name">Flight to NYC</field>
+            <field name="category_id" ref="smart_expense_management.category_travel"/>
+            <field name="unit_amount">450.00</field>
+            <field name="quantity">1</field>
+            <field name="date" eval="(DateTime.now() - timedelta(days=3)).strftime('%Y-%m-%d')"/>
+            <field name="vendor_name">American Airlines</field>
+        </record>
+
+        <record id="demo_expense_line_2" model="expense.line">
+            <field name="claim_id" ref="demo_expense_claim_1"/>
+            <field name="name">Hotel Stay</field>
+            <field name="category_id" ref="smart_expense_management.category_accommodation"/>
+            <field name="unit_amount">180.00</field>
+            <field name="quantity">2</field>
+            <field name="date" eval="(DateTime.now() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="vendor_name">Marriott Hotel</field>
+        </record>
+
+        <record id="demo_expense_line_3" model="expense.line">
+            <field name="claim_id" ref="demo_expense_claim_1"/>
+            <field name="name">Business Dinner</field>
+            <field name="category_id" ref="smart_expense_management.category_meals"/>
+            <field name="unit_amount">85.50</field>
+            <field name="quantity">1</field>
+            <field name="date" eval="(DateTime.now() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="vendor_name">The Capital Grille</field>
+        </record>
+
+        <record id="demo_expense_line_4" model="expense.line">
+            <field name="claim_id" ref="demo_expense_claim_2"/>
+            <field name="name">Client Lunch</field>
+            <field name="category_id" ref="smart_expense_management.category_meals"/>
+            <field name="unit_amount">65.00</field>
+            <field name="quantity">1</field>
+            <field name="date" eval="(DateTime.now() - timedelta(days=6)).strftime('%Y-%m-%d')"/>
+            <field name="vendor_name">Olive Garden</field>
+        </record>
+
+        <!-- Demo Approval Requests -->
+        <record id="demo_approval_request_1" model="approval.request">
+            <field name="expense_claim_id" ref="demo_expense_claim_1"/>
+            <field name="approver_id" ref="demo_employee_sarah"/>
+            <field name="approval_rule_id" ref="smart_expense_management.rule_manager_medium"/>
+            <field name="sequence">1</field>
+            <field name="required_amount">715.50</field>
+            <field name="request_date" eval="(DateTime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_approval_request_2" model="approval.request">
+            <field name="expense_claim_id" ref="demo_expense_claim_2"/>
+            <field name="approver_id" ref="demo_employee_sarah"/>
+            <field name="approval_rule_id" ref="smart_expense_management.rule_auto_approve_small"/>
+            <field name="sequence">1</field>
+            <field name="required_amount">65.00</field>
+            <field name="request_date" eval="(DateTime.now() - timedelta(days=4)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="response_date" eval="(DateTime.now() - timedelta(days=4)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="state">approved</field>
+            <field name="comments">Auto-approved - below threshold</field>
+        </record>
+
+        <!-- Demo Currency Cache (for testing) -->
+        <record id="demo_currency_cache_usd" model="currency.rate.cache">
+            <field name="base_currency">USD</field>
+            <field name="rate_date" eval="DateTime.now().strftime('%Y-%m-%d')"/>
+            <field name="rates_json">{"EUR": 0.85, "GBP": 0.73, "JPY": 110.0, "CAD": 1.25, "AUD": 1.35}</field>
+            <field name="source_url">https://api.exchangerate-api.com/v4/latest/USD</field>
+            <field name="fetched_at" eval="DateTime.now()"/>
+            <field name="ttl_hours">24</field>
+            <field name="is_fallback">False</field>
+        </record>
+
+    </data>
+</odoo>

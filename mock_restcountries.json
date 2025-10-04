@@ -1,0 +1,112 @@
+[
+  {
+    "name": {
+      "common": "United States"
+    },
+    "currencies": {
+      "USD": {
+        "name": "United States dollar",
+        "symbol": "$"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "India"
+    },
+    "currencies": {
+      "INR": {
+        "name": "Indian rupee",
+        "symbol": "₹"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "United Kingdom"
+    },
+    "currencies": {
+      "GBP": {
+        "name": "British pound",
+        "symbol": "£"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Germany"
+    },
+    "currencies": {
+      "EUR": {
+        "name": "Euro",
+        "symbol": "€"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "France"
+    },
+    "currencies": {
+      "EUR": {
+        "name": "Euro",
+        "symbol": "€"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Japan"
+    },
+    "currencies": {
+      "JPY": {
+        "name": "Japanese yen",
+        "symbol": "¥"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Canada"
+    },
+    "currencies": {
+      "CAD": {
+        "name": "Canadian dollar",
+        "symbol": "$"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Australia"
+    },
+    "currencies": {
+      "AUD": {
+        "name": "Australian dollar",
+        "symbol": "$"
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Switzerland"
+    },
+    "currencies": {
+      "CHF": {
+        "name": "Swiss franc",
+        "symbol": "Fr."
+      }
+    }
+  },
+  {
+    "name": {
+      "common": "Singapore"
+    },
+    "currencies": {
+      "SGD": {
+        "name": "Singapore dollar",
+        "symbol": "$"
+      }
+    }
+  }
+]

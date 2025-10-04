@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Approval Request Tree View -->
+        <record id="view_approval_request_tree" model="ir.ui.view">
+            <field name="name">approval.request.tree</field>
+            <field name="model">approval.request</field>
+            <field name="arch" type="xml">
+                <tree string="Approval Requests" decoration-info="state=='pending'" decoration-success="state=='approved'" decoration-danger="state=='rejected'">
+                    <field name="expense_claim_id"/>
+                    <field name="approver_id"/>
+                    <field name="required_amount"/>
+                    <field name="currency_id"/>
+                    <field name="request_date"/>
+                    <field name="response_date"/>
+                    <field name="state"/>
+                    <field name="days_pending"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Approval Request Form View -->
+        <record id="view_approval_request_form" model="ir.ui.view">
+            <field name="name">approval.request.form</field>
+            <field name="model">approval.request</field>
+            <field name="arch" type="xml">
+                <form string="Approval Request">
+                    <header>
+                        <button name="action_approve" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                        <button name="action_reject" type="object" string="Reject" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="pending,approved,rejected"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="expense_claim_id"/>
+                                <field name="approver_id"/>
+                                <field name="approval_rule_id"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group>
+                                <field name="required_amount"/>
+                                <field name="currency_id"/>
+                                <field name="request_date"/>
+                                <field name="response_date"/>
+                                <field name="days_pending"/>
+                            </group>
+                        </group>
+                        <group string="Comments">
+                            <field name="comments" nolabel="1"/>
+                        </group>
+                        <group string="Rejection Reason" attrs="{'invisible': [('state', '!=', 'rejected')]}">
+                            <field name="rejection_reason" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Approval Request Kanban View -->
+        <record id="view_approval_request_kanban" model="ir.ui.view">
+            <field name="name">approval.request.kanban</field>
+            <field name="model">approval.request</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column">
+                    <field name="state"/>
+                    <field name="expense_claim_id"/>
+                    <field name="approver_id"/>
+                    <field name="required_amount"/>
+                    <field name="currency_id"/>
+                    <field name="days_pending"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="expense_claim_id"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_kanban_record_body">
+                                        <div>Approver: <field name="approver_id"/></div>
+                                        <div>Amount: <field name="required_amount"/> <field name="currency_id"/></div>
+                                        <div t-if="record.days_pending.raw_value > 0">
+                                            Pending: <field name="days_pending"/> days
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Approval Request Action -->
+        <record id="action_approval_request" model="ir.actions.act_window">
+            <field name="name">Approval Requests</field>
+            <field name="res_model">approval.request</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- My Pending Approvals Action -->
+        <record id="action_my_pending_approvals" model="ir.actions.act_window">
+            <field name="name">My Pending Approvals</field>
+            <field name="res_model">approval.request</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('approver_id.user_id', '=', uid), ('state', '=', 'pending')]</field>
+            <field name="context">{}</field>
+        </record>
+
+    </data>
+</odoo>

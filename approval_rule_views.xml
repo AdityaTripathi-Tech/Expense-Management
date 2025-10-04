@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Approval Rule Tree View -->
+        <record id="view_approval_rule_tree" model="ir.ui.view">
+            <field name="name">approval.rule.tree</field>
+            <field name="model">approval.rule</field>
+            <field name="arch" type="xml">
+                <tree string="Approval Rules">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="approval_type"/>
+                    <field name="min_amount"/>
+                    <field name="max_amount"/>
+                    <field name="auto_approve_below_limit"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Approval Rule Form View -->
+        <record id="view_approval_rule_form" model="ir.ui.view">
+            <field name="name">approval.rule.form</field>
+            <field name="model">approval.rule</field>
+            <field name="arch" type="xml">
+                <form string="Approval Rule">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                            </button>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="sequence"/>
+                                <field name="approval_type"/>
+                                <field name="auto_approve_below_limit"/>
+                            </group>
+                            <group>
+                                <field name="min_amount"/>
+                                <field name="max_amount"/>
+                                <field name="currency_id"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <group string="Conditions">
+                            <field name="department_ids" widget="many2many_tags"/>
+                            <field name="category_ids" widget="many2many_tags"/>
+                        </group>
+                        <group string="Description">
+                            <field name="description" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Approval Rule Action -->
+        <record id="action_approval_rule" model="ir.actions.act_window">
+            <field name="name">Approval Rules</field>
+            <field name="res_model">approval.rule</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first approval rule!
+                </p>
+                <p>
+                    Approval rules define the workflow for expense approvals based on amount, department, and category.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default Expense Categories -->
+        <record id="category_meals" model="expense.category">
+            <field name="name">Meals &amp; Entertainment</field>
+            <field name="code">MEALS</field>
+            <field name="sequence">10</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Business meals, client entertainment, and related expenses</field>
+        </record>
+
+        <record id="category_travel" model="expense.category">
+            <field name="name">Travel &amp; Transportation</field>
+            <field name="code">TRAVEL</field>
+            <field name="sequence">20</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Flights, trains, taxis, rental cars, and other transportation</field>
+        </record>
+
+        <record id="category_accommodation" model="expense.category">
+            <field name="name">Accommodation</field>
+            <field name="code">HOTEL</field>
+            <field name="sequence">30</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Hotels, lodging, and accommodation expenses</field>
+        </record>
+
+        <record id="category_office" model="expense.category">
+            <field name="name">Office Supplies</field>
+            <field name="code">OFFICE</field>
+            <field name="sequence">40</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Office supplies, equipment, and materials</field>
+        </record>
+
+        <record id="category_communication" model="expense.category">
+            <field name="name">Communication</field>
+            <field name="code">COMM</field>
+            <field name="sequence">50</field>
+            <field name="requires_receipt">False</field>
+            <field name="description">Phone bills, internet, communication services</field>
+        </record>
+
+        <record id="category_training" model="expense.category">
+            <field name="name">Training &amp; Education</field>
+            <field name="code">TRAINING</field>
+            <field name="sequence">60</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Training courses, conferences, educational materials</field>
+        </record>
+
+        <record id="category_fuel" model="expense.category">
+            <field name="name">Fuel &amp; Mileage</field>
+            <field name="code">FUEL</field>
+            <field name="sequence">70</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Vehicle fuel, mileage reimbursement</field>
+        </record>
+
+        <record id="category_software" model="expense.category">
+            <field name="name">Software &amp; Subscriptions</field>
+            <field name="code">SOFTWARE</field>
+            <field name="sequence">80</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Software licenses, SaaS subscriptions, digital tools</field>
+        </record>
+
+        <record id="category_marketing" model="expense.category">
+            <field name="name">Marketing &amp; Advertising</field>
+            <field name="code">MARKETING</field>
+            <field name="sequence">90</field>
+            <field name="requires_receipt">True</field>
+            <field name="description">Marketing materials, advertising, promotional expenses</field>
+        </record>
+
+        <record id="category_miscellaneous" model="expense.category">
+            <field name="name">Miscellaneous</field>
+            <field name="code">MISC</field>
+            <field name="sequence">100</field>
+            <field name="requires_receipt">False</field>
+            <field name="description">Other business expenses not covered by specific categories</field>
+        </record>
+
+        <!-- Default Approval Rules -->
+        <record id="rule_auto_approve_small" model="approval.rule">
+            <field name="name">Auto-approve Small Expenses</field>
+            <field name="sequence">10</field>
+            <field name="min_amount">0.0</field>
+            <field name="max_amount">100.0</field>
+            <field name="approval_type">manager</field>
+            <field name="auto_approve_below_limit">True</field>
+            <field name="description">Automatically approve expenses below $100</field>
+        </record>
+
+        <record id="rule_manager_medium" model="approval.rule">
+            <field name="name">Manager Approval - Medium Expenses</field>
+            <field name="sequence">20</field>
+            <field name="min_amount">100.0</field>
+            <field name="max_amount">1000.0</field>
+            <field name="approval_type">manager</field>
+            <field name="description">Require manager approval for expenses $100-$1000</field>
+        </record>
+
+        <record id="rule_cfo_large" model="approval.rule">
+            <field name="name">CFO Approval - Large Expenses</field>
+            <field name="sequence">30</field>
+            <field name="min_amount">1000.0</field>
+            <field name="approval_type">cfo</field>
+            <field name="description">Require CFO approval for expenses above $1000</field>
+        </record>
+
+        <!-- Sequence for expense claims -->
+        <record id="sequence_expense_claim" model="ir.sequence">
+            <field name="name">Expense Claim Sequence</field>
+            <field name="code">expense.claim</field>
+            <field name="prefix">EXP</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+        <!-- Mail Activity Types -->
+        <record id="mail_activity_expense_approval" model="mail.activity.type">
+            <field name="name">Expense Approval Required</field>
+            <field name="summary">Expense Approval</field>
+            <field name="category">default</field>
+            <field name="delay_count">1</field>
+            <field name="delay_unit">days</field>
+            <field name="delay_from">current_date</field>
+            <field name="chaining_type">suggest</field>
+            <field name="icon">fa-money</field>
+        </record>
+
+        <record id="mail_activity_expense_reminder" model="mail.activity.type">
+            <field name="name">Expense Approval Reminder</field>
+            <field name="summary">Expense Reminder</field>
+            <field name="category">default</field>
+            <field name="delay_count">3</field>
+            <field name="delay_unit">days</field>
+            <field name="delay_from">current_date</field>
+            <field name="chaining_type">suggest</field>
+            <field name="icon">fa-bell</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_smart_expense_management" 
+              name="Smart Expenses" 
+              sequence="50" 
+              web_icon="smart_expense_management,static/description/icon.png"/>
+
+    <!-- Employee Menu Items -->
+    <menuitem id="menu_expense_employee" 
+              name="My Expenses" 
+              parent="menu_smart_expense_management" 
+              sequence="10"/>
+
+    <menuitem id="menu_expense_claims_employee" 
+              name="My Expense Claims" 
+              parent="menu_expense_employee" 
+              action="expense_claim_action" 
+              sequence="10"/>
+
+    <menuitem id="menu_expense_new_claim" 
+              name="New Expense Claim" 
+              parent="menu_expense_employee" 
+              action="expense_claim_action" 
+              sequence="20"/>
+
+    <!-- Manager Menu Items -->
+    <menuitem id="menu_expense_manager" 
+              name="Expense Management" 
+              parent="menu_smart_expense_management" 
+              sequence="20" 
+              groups="hr.group_hr_manager"/>
+
+    <menuitem id="menu_expense_claims_all" 
+              name="All Expense Claims" 
+              parent="menu_expense_manager" 
+              action="expense_claim_action_all" 
+              sequence="10" 
+              groups="hr.group_hr_manager"/>
+
+    <menuitem id="menu_expense_pending_approvals" 
+              name="Pending Approvals" 
+              parent="menu_expense_manager" 
+              action="expense_claim_action_pending_approval" 
+              sequence="20" 
+              groups="hr.group_hr_manager"/>
+
+    <menuitem id="menu_expense_lines" 
+              name="Expense Lines" 
+              parent="menu_expense_manager" 
+              action="expense_line_action" 
+              sequence="30" 
+              groups="hr.group_hr_manager"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_expense_configuration" 
+              name="Configuration" 
+              parent="menu_smart_expense_management" 
+              sequence="90" 
+              groups="base.group_system"/>
+
+    <menuitem id="menu_expense_categories" 
+              name="Expense Categories" 
+              parent="menu_expense_configuration" 
+              action="expense_category_action" 
+              sequence="10" 
+              groups="base.group_system"/>
+
+    <menuitem id="menu_approval_rules" 
+              name="Approval Rules" 
+              parent="menu_expense_configuration" 
+              action="approval_rule_action" 
+              sequence="20" 
+              groups="base.group_system"/>
+
+    <menuitem id="menu_currency_cache" 
+              name="Currency Rate Cache" 
+              parent="menu_expense_configuration" 
+              action="currency_rate_cache_action" 
+              sequence="30" 
+              groups="base.group_system"/>
+
+    <menuitem id="menu_company_settings" 
+              name="Company Settings" 
+              parent="menu_expense_configuration" 
+              action="base.action_res_company_form" 
+              sequence="40" 
+              groups="base.group_system"/>
+
+    <!-- Reports Menu -->
+    <menuitem id="menu_expense_reports" 
+              name="Reports" 
+              parent="menu_smart_expense_management" 
+              sequence="80" 
+              groups="hr.group_hr_manager"/>
+
+    <menuitem id="menu_expense_dashboard" 
+              name="Expense Dashboard" 
+              parent="menu_expense_reports" 
+              sequence="10" 
+              groups="hr.group_hr_manager"/>
+</odoo>
