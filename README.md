@@ -1,5 +1,12 @@
 # Smart Expense Management System
 
+Team Name- Binary Brothers 
+Team Leader-Anand Singh 
+Team Member 1-Aditya Tripathi
+Problem statement- Expense Management
+Reviewer name - Aman Patel (ampa)
+Video presentation link-
+
 A production-ready Odoo module for intelligent expense management with multi-currency support, OCR receipt processing, and smart approval workflows.
 
 ## 🚀 Features
