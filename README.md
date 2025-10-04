@@ -10,7 +10,7 @@ Problem statement- Expense Management
 
 Reviewer name - Aman Patel (ampa)
 
-Video presentation link-
+Video presentation link-https://drive.google.com/drive/folders/1otmCd1wIr91M3VPJegzoQvTVMDYjc9-v
 
 A production-ready Odoo module for intelligent expense management with multi-currency support, OCR receipt processing, and smart approval workflows.
 
