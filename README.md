@@ -2,7 +2,7 @@
 
 Team Name- Binary Brothers 
 
-Team Leader-Anand Singh                      Email-anands9676@gmail.com                      Graduation year - @026
+Team Leader-Anand Singh                      Email-anands9676@gmail.com                      Graduation year - 2026
 
 Team Member1 - Aditya Tripathi               Email-tripathi.aditya384@gmail.com              Graduation Year- 2027
 
